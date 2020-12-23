@@ -9,7 +9,7 @@ import { {{name}}Routes } from './routes/{{name}}'
 {{/tables}}
 
 const dbClient = mssql
-dbClient.connect({{databaseURL}})
+dbClient.connect('{{{databaseURL}}}')
 
 const app = express()
 // Usings for the app

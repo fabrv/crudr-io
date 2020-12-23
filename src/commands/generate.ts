@@ -70,7 +70,7 @@ function generateStructure(apiName: string, apiDescription: string, dbUrl: strin
       })
       const app = render(appTemplate, {
         tables: appTables,
-        databaseUrl: dbUrl
+        databaseURL: dbUrl
       })
       writeFileSync(`${path}\\src\\app.ts`, app, 'utf8')
 

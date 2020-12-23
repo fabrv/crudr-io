@@ -37,7 +37,7 @@ function generate(args) {
                     console.log((yield generateModel(mssql_1.default, tables, args.name)) ? `✅` : `⛔  ${chalk_1.default.red('Failed to generate models')}`);
                     spinner.text = 'Generating controllers';
                     console.log((yield generateController(mssql_1.default, tables, args.name)) ? `✅` : `⛔  ${chalk_1.default.red('Failed to generate controllers')}`);
-                    spinner.text = 'Generating route';
+                    spinner.text = 'Generating routes';
                     console.log((yield generateRoute(mssql_1.default, tables, args.name)) ? `✅` : `⛔  ${chalk_1.default.red('Failed to generate routes')}`);
                     spinner.stop();
                     process.exit();
@@ -80,7 +80,7 @@ function generateStructure(apiName, apiDescription, dbUrl, tables, author) {
             });
             const app = mustache_1.render(appTemplate, {
                 tables: appTables,
-                databaseUrl: dbUrl
+                databaseURL: dbUrl
             });
             fs_1.writeFileSync(`${path}\\src\\app.ts`, app, 'utf8');
             resolve(true);
