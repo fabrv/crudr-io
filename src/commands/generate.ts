@@ -20,12 +20,12 @@ export function generate(args: ParsedArgs) {
           const tables = await getTables(mssql)
           const spinner = ora('Generating file structure').start()
           spinner.text = 'Generating structure'
-          await generateStructure(args.name, args.description, args.url, tables, args.author)
+          console.log(await generateStructure(args.name, args.description, args.url, tables, args.author) ? `✅` : `⛔  ${chalk.red('Failed to generate models')}`)
           spinner.text = 'Generating models'
           console.log(await generateModel(mssql, tables, args.name) ? `✅` : `⛔  ${chalk.red('Failed to generate models')}`)
           spinner.text = 'Generating controllers'
           console.log(await generateController(mssql, tables, args.name) ? `✅` : `⛔  ${chalk.red('Failed to generate controllers')}`)
-          spinner.text = 'Generating route'
+          spinner.text = 'Generating routes'
           console.log(await generateRoute(mssql, tables, args.name) ? `✅` : `⛔  ${chalk.red('Failed to generate routes')}`)
           spinner.stop()
 

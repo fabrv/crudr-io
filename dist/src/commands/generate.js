@@ -32,7 +32,7 @@ function generate(args) {
                     const tables = yield tables_1.getTables(mssql_1.default);
                     const spinner = ora_1.default('Generating file structure').start();
                     spinner.text = 'Generating structure';
-                    yield generateStructure(args.name, args.description, args.url, tables, args.author);
+                    console.log((yield generateStructure(args.name, args.description, args.url, tables, args.author)) ? `✅` : `⛔  ${chalk_1.default.red('Failed to generate models')}`);
                     spinner.text = 'Generating models';
                     console.log((yield generateModel(mssql_1.default, tables, args.name)) ? `✅` : `⛔  ${chalk_1.default.red('Failed to generate models')}`);
                     spinner.text = 'Generating controllers';
