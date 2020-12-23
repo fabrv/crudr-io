@@ -20,6 +20,7 @@ const transformSql_1 = require("../utils/transformSql");
 const fs_1 = require("fs");
 const path_1 = require("path");
 const chalk_1 = __importDefault(require("chalk"));
+const ora_1 = __importDefault(require("ora"));
 function generate(args) {
     args.name = args.name != null ? args.name.replace(/[\W_]+/g, '-') : 'crudrio-api';
     return new Promise((resolve, reject) => {
@@ -29,10 +30,17 @@ function generate(args) {
                 .then(() => __awaiter(this, void 0, void 0, function* () {
                 try {
                     const tables = yield tables_1.getTables(mssql_1.default);
-                    generateStructure(args.name, args.description, args.url, tables, args.author);
-                    console.log((yield generateModel(mssql_1.default, tables, args.name)) ? `✅  ${chalk_1.default.green('Generated models')}` : `⛔  ${chalk_1.default.red('Failed to generate models')}`);
-                    console.log((yield generateController(mssql_1.default, tables, args.name)) ? `✅  ${chalk_1.default.green('Generated controllers')}` : `⛔  ${chalk_1.default.red('Failed to generate controllers')}`);
-                    console.log((yield generateRoute(mssql_1.default, tables, args.name)) ? `✅  ${chalk_1.default.green('Generated routes')}` : `⛔  ${chalk_1.default.red('Failed to generate routes')}`);
+                    const spinner = ora_1.default('Generating file structure').start();
+                    spinner.text = 'Generating structure';
+                    yield generateStructure(args.name, args.description, args.url, tables, args.author);
+                    spinner.text = 'Generating models';
+                    console.log((yield generateModel(mssql_1.default, tables, args.name)) ? `✅` : `⛔  ${chalk_1.default.red('Failed to generate models')}`);
+                    spinner.text = 'Generating controllers';
+                    console.log((yield generateController(mssql_1.default, tables, args.name)) ? `✅` : `⛔  ${chalk_1.default.red('Failed to generate controllers')}`);
+                    spinner.text = 'Generating route';
+                    console.log((yield generateRoute(mssql_1.default, tables, args.name)) ? `✅` : `⛔  ${chalk_1.default.red('Failed to generate routes')}`);
+                    spinner.stop();
+                    process.exit();
                 }
                 catch (error) {
                     reject(error);
@@ -47,6 +55,7 @@ function generate(args) {
 }
 exports.generate = generate;
 function generateStructure(apiName, apiDescription, dbUrl, tables, author) {
+    const spinner = ora_1.default('');
     return new Promise((resolve, reject) => {
         try {
             const path = `${process.cwd()}\\${apiName}`;
@@ -103,7 +112,6 @@ function generateModel(dbClient, tables, apiName) {
                 const template = fs_1.readFileSync(path_1.join(__dirname, '/../templates/_interface.ts.hbs'), 'utf8');
                 fs_1.mkdirSync(path, { recursive: true });
                 fs_1.writeFileSync(`${path}\\${view.name}.ts`, mustache_1.render(template, view), 'utf8');
-                console.log(`${chalk_1.default.yellow('Model:')} ${view.name}.ts`);
             }
             resolve(true);
         }).catch(err => { throw err; });
@@ -133,7 +141,6 @@ function generateController(dbClient, tables, apiName) {
                 const template = fs_1.readFileSync(path_1.join(__dirname, '/../templates/_controller.ts.hbs'), 'utf8');
                 fs_1.mkdirSync(path, { recursive: true });
                 fs_1.writeFileSync(`${path}\\${view.name}.ts`, mustache_1.render(template, view), 'utf8');
-                console.log(`${chalk_1.default.yellow('Controller:')} ${view.name}.ts`);
             }
             resolve(true);
         }).catch(err => { throw err; });
@@ -161,7 +168,6 @@ function generateRoute(dbClient, tables, apiName) {
                 const template = fs_1.readFileSync(path_1.join(__dirname, '/../templates/_route.ts.hbs'), 'utf8');
                 fs_1.mkdirSync(path, { recursive: true });
                 fs_1.writeFileSync(`${path}\\${view.name}.ts`, mustache_1.render(template.replace(/\\n/g, '\n'), view), 'utf8');
-                console.log(`${chalk_1.default.yellow('Routes:')} ${view.name}.ts`);
             }
             resolve(true);
         }).catch(err => { throw err; });

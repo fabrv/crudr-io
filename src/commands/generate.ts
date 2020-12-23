@@ -6,7 +6,8 @@ import { transformType } from "../utils/transformSql";
 import { mkdirSync, readFileSync, writeFileSync } from "fs";
 import { join } from "path";
 import chalk from "chalk";
-import { table } from "../model/table";
+import { table } from "../model/table"
+import ora from "ora";
 
 export function generate(args: ParsedArgs) {  
   args.name = args.name != null ? args.name.replace(/[\W_]+/g, '-') : 'crudrio-api'
@@ -17,10 +18,18 @@ export function generate(args: ParsedArgs) {
       .then(async () => {
         try {
           const tables = await getTables(mssql)
-          generateStructure(args.name, args.description, args.url, tables, args.author)
-          console.log(await generateModel(mssql, tables, args.name) ? `✅  ${chalk.green('Generated models')}` : `⛔  ${chalk.red('Failed to generate models')}`)
-          console.log(await generateController(mssql, tables, args.name) ? `✅  ${chalk.green('Generated controllers')}` : `⛔  ${chalk.red('Failed to generate controllers')}`)
-          console.log(await generateRoute(mssql, tables, args.name) ? `✅  ${chalk.green('Generated routes')}` : `⛔  ${chalk.red('Failed to generate routes')}`)
+          const spinner = ora('Generating file structure').start()
+          spinner.text = 'Generating structure'
+          await generateStructure(args.name, args.description, args.url, tables, args.author)
+          spinner.text = 'Generating models'
+          console.log(await generateModel(mssql, tables, args.name) ? `✅` : `⛔  ${chalk.red('Failed to generate models')}`)
+          spinner.text = 'Generating controllers'
+          console.log(await generateController(mssql, tables, args.name) ? `✅` : `⛔  ${chalk.red('Failed to generate controllers')}`)
+          spinner.text = 'Generating route'
+          console.log(await generateRoute(mssql, tables, args.name) ? `✅` : `⛔  ${chalk.red('Failed to generate routes')}`)
+          spinner.stop()
+
+          process.exit()
         } catch (error) {
           reject(error)
         }
@@ -33,6 +42,7 @@ export function generate(args: ParsedArgs) {
 }
 
 function generateStructure(apiName: string, apiDescription: string, dbUrl: string, tables: table[], author?: string): Promise<boolean | undefined> {
+  const spinner = ora('')
   return new Promise((resolve, reject) => {
     try {
       const path = `${process.cwd()}\\${apiName}`
@@ -95,7 +105,6 @@ function generateModel(dbClient, tables: table[], apiName: string): Promise<bool
 
         mkdirSync(path, {recursive: true})
         writeFileSync(`${path}\\${view.name}.ts`, render(template, view), 'utf8')
-        console.log(`${chalk.yellow('Model:')} ${view.name}.ts`)
       }
       resolve(true)
     }).catch(err => {throw err})
@@ -128,7 +137,6 @@ function generateController(dbClient, tables: table[], apiName: string): Promise
 
         mkdirSync(path, {recursive: true})
         writeFileSync(`${path}\\${view.name}.ts`, render(template, view), 'utf8')
-        console.log(`${chalk.yellow('Controller:')} ${view.name}.ts`)
       }
       resolve(true)
     }).catch(err => {throw err})
@@ -159,7 +167,6 @@ function generateRoute(dbClient, tables: table[], apiName: string): Promise<bool
 
         mkdirSync(path, {recursive: true})
         writeFileSync(`${path}\\${view.name}.ts`, render(template.replace(/\\n/g, '\n'), view), 'utf8')
-        console.log(`${chalk.yellow('Routes:')} ${view.name}.ts`)
       }
       resolve(true)
     }).catch(err => {throw err})
