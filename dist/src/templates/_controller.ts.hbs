@@ -4,7 +4,7 @@ import { {{name}} } from '../model/{{name}}'
 export class {{name}}Controller {
   private dbClient: mssql
   constructor(dbClient: mssql) {
-    dbClient = dbClient
+    this.dbClient = dbClient
   }
   
   create{{name}}(model: {{name}}): Promise<{{name}}> {
