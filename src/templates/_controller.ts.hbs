@@ -1,18 +1,19 @@
 import mssql from 'mssql'
+import { {{name}} } from './model/{{name}}'
 
-export class TestService {
+export class {{name}}Controller {
   private dbClient: mssql
   constructor(dbClient: mssql) {
     dbClient = dbClient
   }
   
-  createTest(model: test): Promise<test> {
+  createTest(model: {{name}}): Promise<{{name}}> {
     return new Promise((resolve, reject) => {
       this.dbClient.query(
         `INSERT INTO 
-        OUTPUT INSERTED.CODE_SKU
-        SONDA.SWIFT_SKU(CODE_SKU)
-        VALUES (${model.CODE_SKU})`
+        OUTPUT {{#fields}}INSERTED.{{name}}{{/fields}}
+        {{schema}}.{{name}}({{#fields}}{{name}}{{/fields}})
+        VALUES ({{#fields}}'${model.{{name}}}'{{/fields}})`
       )
       .then((data: any) => {
         resolve(data.recordset)
@@ -21,11 +22,11 @@ export class TestService {
     })
   }
 
-  readTest(limit: number = 1000, offset: number = 0): Promise<test> {
+  readTest(limit: number = 1000, offset: number = 0): Promise<{{name}}> {
     return new Promise((resolve, reject) => {
       this.dbClient.query(
-        `SELECT * FROM SONDA.SWIFT_COMBO
-        ORDER BY COMBO_ID
+        `SELECT * FROM {{schema}}.{{name}}
+        ORDER BY {{firstField}}
         OFFSET ${offset} ROWS
         FETCH FIRST ${limit} ROWS ONLY`
       )
@@ -36,13 +37,12 @@ export class TestService {
     })
   }
 
-  updateTest(model: test, firstFieldValue: type) {
+  updateTest(model: test, firstFieldValue: {{name}}): Promise<{{name}}> {
     return new Promise((resolve, reject) => {
       this.dbClient.query(
-        `UPDATE SONDA.SWIFT_USER_BY_TEAM
-        SET TEAM_ID = 1234
-        AND USER_ID = 1234
-        WHERE USER_ID = ${firstFieldValue}`
+        `UPDATE {{schema}}.{{name}}
+        SET {{#fields}}{{model}} = ${model.{{name}}}, {{/fields}}
+        WHERE {{firstField}} = '${firstFieldValue}`'
       )
       .then((data: any) => {
         resolve(model)
@@ -51,14 +51,14 @@ export class TestService {
     })
   }
 
-  deleteTest(firstFieldValue: type) {
+  deleteTest(firstFieldValue: {{name}}): Promise<boolean> {
     return new Promise((resolve, reject) => {
       this.dbClient.query(
-        `DELETE FROM SONDA.SWIFT_USER_BY_TEAM
-        WHERE USER_ID = ${firstFieldValue}`
+        `DELETE FROM {{schema}}.{{name}}
+        WHERE {{firstField}} = ${firstFieldValue}`
       )
       .then((data: any) => {
-        resolve(model)
+        resolve(true)
       })
       .catch((err: any) => reject(err))
     })
