@@ -22,3 +22,4 @@ function getTableColumns(dbClient, tableName, schema) {
     });
 }
 exports.getTableColumns = getTableColumns;
+//# sourceMappingURL=tables.js.map

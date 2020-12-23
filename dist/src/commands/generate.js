@@ -27,7 +27,9 @@ function generate(args) {
             mssql_1.default.connect(args.url)
                 .then(() => __awaiter(this, void 0, void 0, function* () {
                 try {
-                    console.log(yield generateModel(mssql_1.default));
+                    const tables = yield tables_1.getTables(mssql_1.default);
+                    console.log(yield generateModel(mssql_1.default, tables));
+                    console.log(yield generateController(mssql_1.default, tables));
                 }
                 catch (error) {
                     reject(error);
@@ -41,37 +43,62 @@ function generate(args) {
     });
 }
 exports.generate = generate;
-function generateModel(dbClient) {
+function generateModel(dbClient, tables) {
+    return new Promise((resolve, reject) => {
+        const interfaceViews = tables.map((t) => __awaiter(this, void 0, void 0, function* () {
+            const view = {
+                name: t.TABLE_NAME.replace(/[\W]+/g, ''),
+                fields: (yield tables_1.getTableColumns(dbClient, t.TABLE_NAME, t.TABLE_SCHEMA)).map(a => {
+                    return {
+                        name: a.COLUMN_NAME.replace(/[\W]+/g, ''),
+                        optional: a.IS_NULLABLE === 'NO',
+                        type: transformSql_1.transformType(a.DATA_TYPE)
+                    };
+                })
+            };
+            return view;
+        }));
+        Promise.all(interfaceViews)
+            .then(views => {
+            for (const view of views) {
+                const path = `${process.cwd()}\\model`;
+                const template = fs_1.readFileSync(path_1.join(__dirname, '/../templates/_interface.ts.hbs'), 'utf8');
+                fs_1.mkdirSync(path, { recursive: true });
+                fs_1.writeFileSync(`${path}\\${view.name}.ts`, mustache_1.render(template, view), 'utf8');
+                console.log(`${chalk_1.default.yellow('Model:')} ${view.name}.ts`);
+            }
+            resolve(true);
+        }).catch(err => { throw err; });
+    });
+}
+function generateController(dbClient, tables) {
     return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
-        try {
-            const tables = yield tables_1.getTables(dbClient);
-            const interfaceViews = tables.map((t) => __awaiter(this, void 0, void 0, function* () {
-                const view = {
-                    name: t.TABLE_NAME.replace(/[\W]+/g, ''),
-                    fields: (yield tables_1.getTableColumns(dbClient, t.TABLE_NAME, t.TABLE_SCHEMA)).map(a => {
-                        return {
-                            name: a.COLUMN_NAME.replace(/[\W]+/g, ''),
-                            optional: a.IS_NULLABLE === 'NO',
-                            type: transformSql_1.transformType(a.DATA_TYPE)
-                        };
-                    })
-                };
-                return view;
-            }));
-            Promise.all(interfaceViews)
-                .then(views => {
-                for (const view of views) {
-                    const path = `${process.cwd()}\\model`;
-                    const template = fs_1.readFileSync(path_1.join(__dirname, '/../templates/_interface.ts.hbs'), 'utf8');
-                    fs_1.mkdirSync(path, { recursive: true });
-                    fs_1.writeFileSync(`${path}\\${view.name}.ts`, mustache_1.render(template, view), 'utf8');
-                    console.log(`${chalk_1.default.yellow('Model:')} ${view.name}.ts`);
-                }
-                resolve(true);
-            }).catch(err => { throw err; });
-        }
-        catch (error) {
-            reject(error);
-        }
+        const controllerViews = tables.map((t) => __awaiter(this, void 0, void 0, function* () {
+            const fields = yield tables_1.getTableColumns(dbClient, t.TABLE_NAME, t.TABLE_SCHEMA);
+            const view = {
+                name: t.TABLE_NAME.replace(/[\W]+/g, ''),
+                schema: t.TABLE_SCHEMA,
+                firstField: fields[0].COLUMN_NAME,
+                fields: fields.map((a, i) => {
+                    return {
+                        name: a.COLUMN_NAME.replace(/[\W]+/g, ''),
+                        comma: i !== (fields.length - 1)
+                    };
+                })
+            };
+            return view;
+        }));
+        Promise.all(controllerViews)
+            .then(views => {
+            for (const view of views) {
+                const path = `${process.cwd()}\\controllers`;
+                const template = fs_1.readFileSync(path_1.join(__dirname, '/../templates/_controller.ts.hbs'), 'utf8');
+                fs_1.mkdirSync(path, { recursive: true });
+                fs_1.writeFileSync(`${path}\\${view.name}.ts`, mustache_1.render(template, view), 'utf8');
+                console.log(`${chalk_1.default.yellow('Controller:')} ${view.name}.ts`);
+            }
+            resolve(true);
+        }).catch(err => { throw err; });
     }));
 }
+//# sourceMappingURL=generate.js.map

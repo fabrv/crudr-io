@@ -12,3 +12,4 @@ function transformType(sqlType) {
     }
 }
 exports.transformType = transformType;
+//# sourceMappingURL=transformSql.js.map

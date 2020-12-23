@@ -32,3 +32,4 @@ class crudrio {
     }
 }
 exports.crudrio = crudrio;
+//# sourceMappingURL=app.js.map
