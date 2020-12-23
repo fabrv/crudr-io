@@ -1,0 +1,60 @@
+import { Router } from 'express'
+import { {{name}}Controller } from "../controllers/{{name}}"
+
+import mssql from 'mssql'
+
+export function {{name}}Routes(dbClient: mssql): Router {
+  const router = Router()
+  const mainController = new {{name}}Controller(dbClient)
+
+  router.get('/', (req, res, next) => {
+    const offset = isNaN(parseInt(req.body.offset)) ? undefined : parseInt(req.body.offset)
+    const limit = isNaN(parseInt(req.body.limit)) ? undefined : parseInt(req.body.limit)
+      
+    mainController.read{{name}}(undefined, offset, limit).then(data => {
+      res.send(data)
+    }).catch(next)
+  })
+
+  router.get('/:id', (req, res, next) => {
+    mainController.read{{name}}(req.params.id)
+    .then(data => {
+      if (data === undefined) {
+        next()
+      } else {
+        res.send(data)
+      }
+    })
+    .catch(err => next(err))
+  })
+
+  router.post('/', (req, res, next) => {
+    mainController.create{{name}}({
+      {{#fields}}\n
+      {{name}}: req.body.{{name}}{{#comma}}, {{/comma}}{{/fields}}
+    })
+    .then(data => {
+      res.send(data)
+    })
+    .catch(err => next(err))
+  })
+
+  router.patch('/', (req, res, next) => {
+    mainController.update{{name}}({
+      {{#fields}}\n
+      {{name}}: req.body.{{name}}{{#comma}}, {{/comma}}{{/fields}}
+    }, req.body.firstField)
+    .then(data => {
+      res.send(data)
+    }).catch(err => next(next))
+  })
+
+  router.delete('/', (req, res, next) => {
+    mainController.delete{{name}}(req.body.id)
+    .then(aux => {
+      res.send(aux)
+    }).catch(err => next(err))
+  })
+
+  return router
+}

@@ -28,8 +28,9 @@ function generate(args) {
                 .then(() => __awaiter(this, void 0, void 0, function* () {
                 try {
                     const tables = yield tables_1.getTables(mssql_1.default);
-                    console.log(yield generateModel(mssql_1.default, tables));
-                    console.log(yield generateController(mssql_1.default, tables));
+                    console.log((yield generateModel(mssql_1.default, tables)) ? `✅  ${chalk_1.default.green('Generated models')}` : `⛔  ${chalk_1.default.red('Failed to generate models')}`);
+                    console.log((yield generateController(mssql_1.default, tables)) ? `✅  ${chalk_1.default.green('Generated controllers')}` : `⛔  ${chalk_1.default.red('Failed to generate controllers')}`);
+                    console.log((yield generateRoute(mssql_1.default, tables)) ? `✅  ${chalk_1.default.green('Generated routes')}` : `⛔  ${chalk_1.default.red('Failed to generate routes')}`);
                 }
                 catch (error) {
                     reject(error);
@@ -96,6 +97,34 @@ function generateController(dbClient, tables) {
                 fs_1.mkdirSync(path, { recursive: true });
                 fs_1.writeFileSync(`${path}\\${view.name}.ts`, mustache_1.render(template, view), 'utf8');
                 console.log(`${chalk_1.default.yellow('Controller:')} ${view.name}.ts`);
+            }
+            resolve(true);
+        }).catch(err => { throw err; });
+    }));
+}
+function generateRoute(dbClient, tables) {
+    return new Promise((resolve, reject) => __awaiter(this, void 0, void 0, function* () {
+        const routeViews = tables.map((t) => __awaiter(this, void 0, void 0, function* () {
+            const fields = yield tables_1.getTableColumns(dbClient, t.TABLE_NAME, t.TABLE_SCHEMA);
+            const view = {
+                name: t.TABLE_NAME.replace(/[\W]+/g, ''),
+                fields: fields.map((a, i) => {
+                    return {
+                        name: a.COLUMN_NAME.replace(/[\W]+/g, ''),
+                        comma: i !== (fields.length - 1)
+                    };
+                })
+            };
+            return view;
+        }));
+        Promise.all(routeViews)
+            .then(views => {
+            for (const view of views) {
+                const path = `${process.cwd()}\\routes`;
+                const template = fs_1.readFileSync(path_1.join(__dirname, '/../templates/_route.ts.hbs'), 'utf8');
+                fs_1.mkdirSync(path, { recursive: true });
+                fs_1.writeFileSync(`${path}\\${view.name}.ts`, mustache_1.render(template.replace(/\\n/g, '\n'), view), 'utf8');
+                console.log(`${chalk_1.default.yellow('Routes:')} ${view.name}.ts`);
             }
             resolve(true);
         }).catch(err => { throw err; });
