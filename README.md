@@ -2,9 +2,10 @@
 Automatically generate REST APIs from a SQL Server Database.
 
 ## Use
-1. Generate the API
+1. Install globally and generate the API
 ```bash
-npx crudrio --url "mssql://user:password@localhost/database" --name "crudrio-api"
+npm i crudrio -g
+crudrio --url "mssql://user:password@localhost/database" --name "crudrio-api"
 ```
 2. Enter project directory and install dependencies
 ```bash
