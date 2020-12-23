@@ -13,7 +13,7 @@ export function {{name}}Routes(dbClient: mssql): Router {
       
     mainController.read{{name}}(undefined, offset, limit).then(data => {
       res.send(data)
-    }).catch(next)
+    }).catch(err => next(err))
   })
 
   router.get('/:id', (req, res, next) => {
@@ -39,18 +39,18 @@ export function {{name}}Routes(dbClient: mssql): Router {
     .catch(err => next(err))
   })
 
-  router.patch('/', (req, res, next) => {
+  router.patch('/:id', (req, res, next) => {
     mainController.update{{name}}({
       {{#fields}}\n
       {{name}}: req.body.{{name}}{{#comma}}, {{/comma}}{{/fields}}
-    }, req.body.firstField)
+    }, req.params.id)
     .then(data => {
       res.send(data)
-    }).catch(err => next(next))
+    }).catch(err => next(err))
   })
 
   router.delete('/', (req, res, next) => {
-    mainController.delete{{name}}(req.body.id)
+    mainController.delete{{name}}(req.body.firstField)
     .then(aux => {
       res.send(aux)
     }).catch(err => next(err))

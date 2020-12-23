@@ -13,7 +13,6 @@ export class {{name}}Controller {
         `INSERT INTO {{schema}}.{{name}}
         ({{#fields}}{{name}}{{#comma}}, {{/comma}}{{/fields}})
         OUTPUT {{#fields}}INSERTED.{{name}}{{#comma}}, {{/comma}}{{/fields}}
-        {{schema}}.{{name}}({{#fields}}{{name}}{{#comma}}, {{/comma}}{{/fields}})
         VALUES ({{#fields}}'${model.{{name}}}'{{#comma}}, {{/comma}}{{/fields}})`
       )
       .then((data: any) => {
@@ -27,7 +26,7 @@ export class {{name}}Controller {
     return new Promise((resolve, reject) => {
       this.dbClient.query(
         `SELECT * FROM {{schema}}.{{name}}
-        ${firstField != null ? 'WHERE {{firstField}} = ${firstField}' : ''}
+        ${firstField != null ? `WHERE {{firstField}} = '${firstField}'` : ''}
         ORDER BY {{firstField}}
         OFFSET ${offset} ROWS
         FETCH FIRST ${limit} ROWS ONLY`
@@ -43,7 +42,7 @@ export class {{name}}Controller {
     return new Promise((resolve, reject) => {
       this.dbClient.query(
         `UPDATE {{schema}}.{{name}}
-        SET {{#fields}}{{name}} = ${model.{{name}}}{{#comma}}, {{/comma}}{{/fields}}
+        SET ${Object.keys(model).filter(a => model[a] != null).map(a => `${a} = '${model[a]}'`).join(', ')}
         WHERE {{firstField}} = '${firstFieldValue}'`
       )
       .then(() => {
