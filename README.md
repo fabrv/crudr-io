@@ -17,3 +17,9 @@ npm i
 ```bash
 npm run watch
 ```
+
+
+## Roadmap
+1. Controller improvements for inserts
+2. PostgreSQL and MySQL integrations
+3. Help option in CLI
