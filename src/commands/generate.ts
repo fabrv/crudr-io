@@ -61,6 +61,6 @@ function generateModel(dbClient, tables: table[]): Promise<boolean | undefined> 
 
 function generateController(dbClient, tables): Promise<boolean | undefined> {
   return new Promise((resolve, reject) => {
-
+    
   })
 }
