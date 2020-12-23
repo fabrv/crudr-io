@@ -1,6 +1,6 @@
 {
   "name": "crudrio",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Create CRUD APIs automatically from your database",
   "main": "dist/src/app.js",
   "scripts": {
