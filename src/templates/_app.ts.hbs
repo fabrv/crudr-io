@@ -1,0 +1,50 @@
+import express from 'express'
+import cookieParser from 'cookie-parser'
+import session from 'express-session'
+import bodyParser from 'body-parser'
+import cors from 'cors'
+import mssql from 'mssql'
+{{#tables}}
+import { {{name}}Routes } from './routes/{{name}}'
+{{/tables}}
+
+const dbClient = mssql
+dbClient.connect({{databaseURL}})
+
+const app = express()
+// Usings for the app
+app.use(cors());
+app.use(cookieParser())
+app.use(session({
+  secret: 'secret',
+  resave: true,
+	saveUninitialized: true
+}))
+app.use(bodyParser.json())
+app.use(bodyParser.urlencoded({ extended: true }))
+
+//Routes
+{{#tables}}
+app.use('/{{name}}', {{name}}Routes(dbClient))
+{{/tables}}
+
+//505 Error handler
+app.use((error: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
+  console.error(error)
+  res.status(500).send({
+    status: 500,
+    error: 'Internal Server Error',
+    message: error.message
+  })
+})
+
+//404 Error handler
+app.use((req: express.Request, res: express.Response) => {
+  res.status(404).send({
+    status: 404,
+    error: 'Resource Not Found',
+    message: `The requested resource is not available. ${req.method} ${req.url}`
+  })
+})
+
+export default app
